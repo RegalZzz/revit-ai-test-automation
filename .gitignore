@@ -1,0 +1,15 @@
+.local/
+**/bin/
+**/obj/
+.vs/
+.idea/
+__pycache__/
+*.user
+*.suo
+*.zip
+*.rvt
+*.rfa
+*.rte
+*.dwg
+*.dll
+*.pdb

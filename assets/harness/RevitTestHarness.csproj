@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>__TARGET_FRAMEWORK__</TargetFramework>
+    <AssemblyName>__HARNESS_NAME__</AssemblyName>
+    <RootNamespace>__HARNESS_NAME__</RootNamespace>
+    <OutputType>Library</OutputType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>$(RevitInstallDir)\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(RevitInstallDir)\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" Condition="'$(TargetFramework)' == 'net48'" />
+    <Compile Include="RevitTestApplication.cs" />
+    <Compile Include="TestContext.cs" />
+    <Compile Include="TestScenario.cs" />
+  </ItemGroup>
+  <Target Name="CheckRevitReferences" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(RevitInstallDir)\RevitAPI.dll')" Text="Pass RevitInstallDir for the target Revit installation." />
+  </Target>
+</Project>
