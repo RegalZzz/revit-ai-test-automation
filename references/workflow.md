@@ -41,7 +41,7 @@ Revit 的 API 年份不能只靠 TargetFramework 推断。运行结果记录实�
 | TestRoot | 可选结果根目录；默认测试项目下 .local/revit-tests/ |
 | TimeoutSeconds | 默认 600；按真实测试耗时调整，不以无限等待代替诊断 |
 | PrepareOnly | 构建并生成副本与清单，但不注册、不启动 Revit |
-| AutoTrustRunner | 明确授权后，仅对本轮测试入口 DLL 自动操作“总是载入” |
+| AutoTrustRunner | 明确授权后，对本轮目标 Revit 进程中所有可识别的 DLL 加载提示自动操作“总是载入”；测试入口 DLL 仍单独校验路径和 SHA256 |
 
 每轮输出包括构建日志、测试 DLL 及依赖、Model.rvt、输入副本、待注册清单、run.json。API DLL 不应出现在测试输出中。临时 `.addin` 写入当前用户对应年份的 Addins 目录，测试结束只删除本轮文件。
 
@@ -61,7 +61,7 @@ Revit 的 API 年份不能只靠 TargetFramework 推断。运行结果记录实�
 
 ## 启动提示与超时
 
-模板订阅 DialogBoxShowing 只记录 DialogId。发布者信任提示可能在 OnStartup 之前发生，此时连 started.txt 都可能不存在。默认由用户处理；用户明确授权指定测试 DLL 时，可按 [发布者提示自动处理](publisher-approval.md) 启用外部辅助脚本。不用坐标盲点“确定”。确需处理无关配置警告时，根据已观察的 DialogId 添加精确分支并记录结果。
+模板订阅 DialogBoxShowing 只记录 DialogId。发布者信任提示可能在 OnStartup 之前发生，此时连 started.txt 都可能不存在。默认由用户处理；用户明确授权本轮目标 Revit 进程内的 DLL 加载提示时，可按 [发布者提示自动处理](publisher-approval.md) 启用外部辅助脚本。辅助脚本通过 DLL 文本及标准三按钮控件识别提示，直接调用“始终加载/总是载入”，覆盖测试入口启动前后所有 DLL，监控持续到进程退出或本轮超时；其他安全、修复和保存提示仍交给用户。
 
 超时后启动器返回失败，清理临时注册但保留进程和运行目录。处理提示后运行：
 

@@ -1,6 +1,14 @@
 # 包内资源验证记录
 
-日期：2026-11-04。
+日期：2026-11-05。
+
+## 2026-11-05：扩展为处理本轮全部 DLL 提示
+
+`Approve-RevitTestDll.ps1` 现在按目标 Revit PID、进程开始时间、`#32770` 对话框、`ContentText` 中的 `.dll` 文本和标准三按钮控件识别提示，不再把测试入口 DLL 路径作为过滤条件。Win32 先筛选目标窗口，再由 UI Automation 取得按钮控件；优先调用 `InvokePattern`，原生命令链接缺少该模式时按已验证的控件命令 ID 调用 `TDM_CLICK_BUTTON`。一次运行可连续处理多个 DLL，收到测试入口启动信号后仍持续到进程退出或本轮超时。`ApprovedDlls` 记录每次操作，`SkippedDialogs` 记录无法识别的 DLL 提示；测试入口 DLL 仍保留 SHA256 完整性校验。
+
+新增可复现测试 `tests/Test-PublisherApproval.ps1` 及原生 TaskDialog 测试替身。在 Windows PowerShell 5.1.22621.7376 与 PowerShell 7.5.4 下各通过 23 项断言：连续四个 DLL 提示、测试入口启动前后的其他 DLL（含延迟三秒的提示）、中文“始终加载”、控件 ID 不同、特殊路径、标准按钮与命令链接、排除其他进程、观察模式、无关按钮及非 DLL 提示、超时保留进程、父启动器停止、开始时间/哈希不符，以及已有操作意图的拒绝重试。本机 TaskDialog 控件实际通过 `TDM_CLICK_BUTTON` 选中预期按钮，并由替身记录返回的按钮 ID；不将它作为 `InvokePattern` 分支的新实机证据。全部六份 PowerShell 脚本在两种宿主解析通过，包内 15 个 Markdown 本地链接检查通过。
+
+以上测试未启动真实 Revit、加载 DLL、改变 DLL 信任或读写模型。本次未新增真实 Revit 多 DLL 弹窗实测；此前单 DLL 的 Revit 2019 证据见下文，实际插件集合及其他版本仍需分别验证。
 
 ## 2026-11-05：独立项目与更名
 
@@ -10,7 +18,7 @@
 
 ## v1.1 本次更新
 
-补充“总是载入”的源码级技术说明：外部辅助进程的启动时机、UI Automation 遍历 API、实测控件 ID、路径与 SHA256 检查、InvokePattern 调用、启动信号判定及不同模型的执行顺序。原审批脚本、主启动器和 Revit 模板保持上次实测版本。
+补充“总是载入”的源码级技术说明：外部辅助进程的启动时机、UI Automation 遍历 API、实测控件 ID、路径与 SHA256 检查、InvokePattern 调用、启动信号判定及不同模型的执行顺序。
 
 新增 `Get-RevitPublisherDialog.ps1` 只读诊断脚本。在 Windows PowerShell 5.1.22621.7376 与 PowerShell 7.5.4 下分别通过 13 项检查，覆盖五份脚本解析、指定进程观测、无模态框状态、排除其他进程窗口、运行记录未变、开始时间不匹配、错误进程名、未启动运行及进程已退出。使用短期进程 test double，没有启动真实 Revit、操作加载按钮或读写模型。本次新增诊断脚本未重新在真实 Revit 弹窗上运行；自动点击的实机依据仍为下方已记录的 Revit 2019 测试。
 

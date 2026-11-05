@@ -37,7 +37,7 @@ AI 辅助 Revit 自动化测试，版本：v1.1。
 4. 一次运行一个测试 Revit。启动器只给子进程传递运行目录和运行 ID，临时注册 Application 类型 `.addin`；插件在 `OnStartup` 订阅一次 `Idling`，在该回调内打开副本、运行测试。
 5. 保留 `run.json`、`result.json`、`assertions.log`、实际程序集路径与哈希、必要导出图。检查断言、回滚、关闭文档及源文件哈希，再给出结论。
 
-用户明确要求自动处理指定测试 DLL 的加载确认时，先读 [发布者提示自动处理：具体实现与复现步骤](references/publisher-approval.md)，再使用 `-AutoTrustRunner`。包内 `Approve-RevitTestDll.ps1` 已实现完整操作：外部 PowerShell 加载 `UIAutomationClient`，按本轮 PID 与开始时间筛选 `#32770` 对话框，校验 `ContentText` 中的 DLL 路径及磁盘 SHA256，识别 `CommandButton_1001` 的“总是载入”文字，以 `InvokePattern.Invoke()` 调用，并等待测试 DLL 的启动信号。优先直接运行脚本；这一流程需要执行本地 PowerShell 的能力，不要求 AI 另有看图点击工具。已有会话授权继续有效；未知版本或无法识别控件时，运行 `Get-RevitPublisherDialog.ps1` 获取只读控件记录，再依据实际记录适配，不能猜坐标或只凭按钮 ID 点击。
+用户明确要求自动处理本轮 Revit 进程内所有 DLL 加载确认时，先读 [发布者提示自动处理：具体实现与复现步骤](references/publisher-approval.md)，再使用 `-AutoTrustRunner`。包内 `Approve-RevitTestDll.ps1` 已实现完整操作：外部 PowerShell 加载 `UIAutomationClient`，按本轮 PID 与开始时间筛选 `#32770` 对话框，确认 `ContentText` 含 `.dll` 且标准三按钮齐全，按控件 ID 或本地化文字取得“始终加载/总是载入”按钮，优先以 `InvokePattern.Invoke()` 调用；没有该模式的原生 `Button` 按已验证的控件命令 ID 调用 `TDM_CLICK_BUTTON`。监控持续到目标进程退出或本轮超时。DLL 路径仅记录证据；测试入口 DLL 仍保留 SHA256 完整性校验，其他 DLL 同样处理。优先直接运行脚本；这一流程需要执行本地 PowerShell 的能力，不要求 AI 另有看图点击工具。已有会话授权继续有效；未知版本或无法识别控件时，运行 `Get-RevitPublisherDialog.ps1` 获取只读控件记录，再依据实际记录适配，不能猜坐标或只凭按钮 ID 点击。
 
 示例命令和包安装方式见 [README.md](README.md)。根据实际安装填写参数，不沿用别人的绝对路径。
 
@@ -47,9 +47,9 @@ AI 辅助 Revit 自动化测试，版本：v1.1。
 - Revit API 在受支持的主线程回调内执行。`IExternalApplication.OnStartup` 负责注册事件，不在外部 PowerShell、线程池或 `Task.Run` 中建模。
 - 打开工作共享 RVT 副本时脱离中心；测试链接使用副本。复制主 RVT 不会自动重定向它的外链路径。
 - 用外层 `TransactionGroup` 包住主文档变化；业务内部可以提交子事务，外层最后仍须回滚。外部文件、新文档和外部系统操作不受该事务组保护，分别清理和验证。
-- 不无差别关闭弹窗。模板只记录 `DialogBoxShowing` 的 ID。默认由用户处理发布者提示；明确授权的指定测试 DLL 可由外部辅助脚本处理“总是载入”。其他安全、修复和保存提示交给用户；已确认无关的配置提示可按具体 DialogId 添加处理。
+- 不无差别关闭弹窗。模板只记录 `DialogBoxShowing` 的 ID。默认由用户处理发布者提示；明确授权本轮目标进程内的 DLL 加载提示时，可由外部辅助脚本对每个可识别 DLL 提示处理“总是载入”。其他安全、修复和保存提示交给用户；已确认无关的配置提示可按具体 DialogId 添加处理。
 - 超时保留 Revit 进程与证据，不杀进程、不自动重跑。提示处理后先用 `Read-RevitTestResult.ps1` 读取原运行；不要把启动器之前的超时退出码改写成成功。
-- 仅关闭测试自己打开的文档，且不保存。存在其他文档时保留进程；只有全部文档已关闭才请求 `ExitRevit`。除明确授权的指定 DLL 信任选择外，不调整 Revit 安全设置或生产插件配置。
+- 仅关闭测试自己打开的文档，且不保存。存在其他文档时保留进程；只有全部文档已关闭才请求 `ExitRevit`。除明确授权的本轮 DLL 信任选择外，不调整 Revit 安全设置或生产插件配置。
 - 不把“编译通过、无异常、截图看起来正确”当作业务正确。配管检查实际连接器链及系统/管径；标注检查几何、遮挡、去重与功能隔离。
 
 ## 验收与兼容边界

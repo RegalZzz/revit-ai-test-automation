@@ -69,7 +69,10 @@ $mutex = $null
 $lockTaken = $false
 $approvalWorker = $null
 $approvalOutputCaptured = $false
-function Capture-ApprovalOutput {
+function Capture-ApprovalOutput([switch]$WaitForExit) {
+    if ($approvalWorker -and $WaitForExit -and -not $approvalWorker.HasExited) {
+        $approvalWorker.WaitForExit(5000) | Out-Null
+    }
     if ($approvalWorker -and $approvalWorker.HasExited -and -not $script:approvalOutputCaptured) {
         [IO.File]::WriteAllText((Join-Path $runRoot 'publisher-approval.stdout.log'), $approvalWorker.StandardOutput.ReadToEnd(), $encoding)
         [IO.File]::WriteAllText((Join-Path $runRoot 'publisher-approval.stderr.log'), $approvalWorker.StandardError.ReadToEnd(), $encoding)
@@ -77,7 +80,10 @@ function Capture-ApprovalOutput {
         $approvalResultPath = Join-Path $runRoot 'publisher-approval-result.json'
         if (Test-Path -LiteralPath $approvalResultPath) {
             $approvalResult = Get-Content -LiteralPath $approvalResultPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            Write-Host "Publisher approval status: $($approvalResult.Status); action invoked: $($approvalResult.ActionInvoked)"
+            Write-Host "Publisher approval status: $($approvalResult.Status); DLL prompts approved: $($approvalResult.ActionCount)"
+            if ($approvalWorker.ExitCode -ne 0) {
+                Write-Warning "Publisher approval helper exited with code $($approvalWorker.ExitCode); inspect publisher-approval.stderr.log and the original Revit process."
+            }
         }
         else { Write-Warning 'Publisher approval helper did not produce a result; inspect its stderr log and the original Revit process.' }
     }
@@ -160,7 +166,7 @@ try {
         $approvalSpec = [ordered]@{
             ProcessId=$run.ProcessId; ProcessStartedUtc=$run.ProcessStartedUtc
             AssemblyPath=$run.TestAssemblyPath; AssemblySha256=$run.TestAssemblySha256
-            TimeoutSeconds=[Math]::Min($TimeoutSeconds, 600)
+            TimeoutSeconds=$TimeoutSeconds
             StartedSignalPath=(Join-Path $runRoot 'started.txt')
             ResultPath=(Join-Path $runRoot 'publisher-approval-result.json')
             ParentRunPath=$runPath
@@ -177,7 +183,7 @@ try {
         $approvalStart.RedirectStandardOutput = $true
         $approvalStart.RedirectStandardError = $true
         $approvalWorker = [Diagnostics.Process]::Start($approvalStart)
-        Write-Host 'Auto approval is restricted to this test process and the staged runner DLL SHA256. Other add-ins require separate handling.'
+        Write-Host 'Auto approval is restricted to this test process and approves every recognized DLL load prompt in that process.'
     }
     else { Write-Host 'Publisher/security prompts require manual handling unless -AutoTrustRunner was explicitly requested.' }
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
@@ -194,6 +200,7 @@ try {
     }
     $run.State = 'ProcessExited'
     Save-RunMetadata
+    Capture-ApprovalOutput -WaitForExit
     & (Join-Path $PSScriptRoot 'Read-RevitTestResult.ps1') -RunDirectory $runRoot
 }
 catch {
@@ -204,7 +211,7 @@ catch {
 }
 finally {
     try {
-        Capture-ApprovalOutput
+        Capture-ApprovalOutput -WaitForExit
         if ($registeredManifest -and (Test-Path -LiteralPath $registeredManifest)) { Remove-Item -LiteralPath $registeredManifest }
         if ($activeMarker -and (Test-Path -LiteralPath $activeMarker)) {
             $marker = Get-Content -LiteralPath $activeMarker -Raw -Encoding UTF8 | ConvertFrom-Json

@@ -37,6 +37,7 @@ revit-ai-test-automation/
 ├── scripts/             PowerShell 启动、诊断与结果读取工具
 ├── assets/harness/      Revit 测试插件的 C# 项目模板
 ├── references/          技术方案、业务接入、加载确认和验证记录
+├── tests/               DLL 加载弹窗的原生控件回归测试
 └── LICENSE              MIT 许可证
 ```
 
@@ -70,11 +71,11 @@ pwsh.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Read-RevitTestResul
 
 临时 Bypass 不能覆盖组织强制策略，也不会获得管理员或文件访问权限。遇到这类限制按具体来源处理，不自动提权。
 
-如果已授权自动信任本轮测试入口 DLL，实际启动时可加 `-AutoTrustRunner`，由外部辅助脚本准确匹配进程、DLL 路径和 SHA256 后操作“总是载入”。它会记住指定 DLL 的信任决定，详情与限制见 [加载确认自动处理](references/publisher-approval.md)。
+如果已授权自动信任本轮 Revit 进程中出现的 DLL，实际启动时可加 `-AutoTrustRunner`。外部辅助脚本准确匹配目标进程和启动时间，通过 UI Automation 获取 DLL 加载弹窗的按钮控件，逐个调用“始终加载/总是载入”，持续到目标进程退出或测试超时。DLL 路径仅记录证据；测试入口 DLL 仍保留 SHA256 完整性校验，其他 DLL 同样处理。详情见 [加载确认自动处理](references/publisher-approval.md)。
 
 这项能力由包内 PowerShell + Windows UI Automation 实现，AI 可直接调用，无需额外安装鼠标自动化库。控件识别失败时，可对实际运行目录执行 `Get-RevitPublisherDialog.ps1`，获取该测试进程的弹窗和控件信息；完整命令与实现原理均见上述文档。
 
-`api-smoke` 是可编译运行的基础 API 示例。未接入业务时，通过只表示基础流程成功。脚本不代替模型断言，不保证第三方弹窗都能自动处理。
+`api-smoke` 是可编译运行的基础 API 示例。未接入业务时，通过只表示基础流程成功。脚本不代替模型断言；未识别控件的 DLL 提示会保留并记录，其他类型的安全弹窗仍由用户处理。
 
 技术细节见 [工作流程](references/workflow.md) 和 [业务接入](references/adapters.md)。本包不附 Autodesk 程序集和测试模型；接收者需要自行准备。
 
