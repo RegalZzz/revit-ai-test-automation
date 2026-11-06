@@ -1,6 +1,10 @@
 # 包内资源验证记录
 
-日期：2026-11-05。
+日期：2026-11-06。
+
+## 2026-11-06：统一包版本
+
+当前最新版明确为 v1.1。增加 `VERSION` 和 `CHANGELOG.md`，统一 README、Skill 元数据及界面展示版本；分享包命名为 `revit-ai-test-automation-v1.1.zip`，包内根目录仍为 `revit-ai-test-automation/`。本次只调整版本说明与展示，不变更测试脚本、DLL 提示处理或 Revit 模板。
 
 ## 2026-11-05：扩展为处理本轮全部 DLL 提示
 

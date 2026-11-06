@@ -9,6 +9,8 @@ metadata:
 
 AI 辅助 Revit 自动化测试，版本：v1.1。
 
+包版本以根目录 [VERSION](VERSION) 为准；更新内容见 [版本记录](CHANGELOG.md)，后续发布规则见 [README.md 的版本与分享包说明](README.md#版本与分享包)。Skill 注册名、调用名和安装目录保持 `revit-ai-test-automation`，分享包文件名包含版本号。
+
 让 AI 编码助手把测试需求落实为可运行的测试代码，在真实 Revit 中执行，并根据模型结果和日志完成诊断与回归。交付可复现的测试，以及能区分“已通过、失败、尚未执行”的证据。本包自带 PowerShell 启动器、Revit 内部测试插件模板及接入说明，运行所需环境为 Windows、目标 Revit 和相应 .NET 开发工具。
 
 ## AI 应完成的工作

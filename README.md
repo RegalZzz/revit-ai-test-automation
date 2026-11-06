@@ -2,11 +2,23 @@
 
 AI 辅助 Revit 自动化测试项目与 Skill，版本 v1.1。
 
-v1.1 明确记录 DLL 加载提示自动处理的技术实现、实测控件 ID、调用方法及排障步骤，并附只读窗口诊断脚本。Skill 名称和安装目录为 `revit-ai-test-automation`，版本号不加入目录名。
+当前最新版为 **v1.1**，包括对本轮 Revit 进程内所有可识别 DLL 加载提示的自动处理、只读窗口诊断和回归测试。完整更新内容见 [版本记录](CHANGELOG.md)。
 
 这是一个独立的 Skill 包，用于指导 AI 编码助手在 Revit 二次开发中尽可能自动完成测试：理解业务规则、设计场景、生成测试代码、构建、启动 Revit、在模型副本中执行、检查结果并回归验证。包内含技术方案、业务接入说明、PowerShell 工具及 C# 测试插件模板。
 
 核心流程通过 Revit 官方 API 执行。需要验证按钮或正式命令入口时，可根据所用 AI 工具具备的桌面自动化能力追加操作测试。运行环境为 Windows、目标版本 Revit、可用许可及相应 .NET 开发工具。
+
+## 版本与分享包
+
+根目录的 [VERSION](VERSION) 是包版本的统一来源，当前内容为 `1.1`，对外展示为 `v1.1`。`SKILL.md` 的 `metadata.version`、正文版本及 `agents/openai.yaml` 的展示版本与之保持一致。
+
+分享包命名为 `revit-ai-test-automation-v1.1.zip`，压缩包内保留 `revit-ai-test-automation/` 根目录。Skill 注册名、调用名和安装目录不含版本号；接收者查看 `VERSION` 即可确认安装版本。
+
+后续发布时按以下规则递增版本，并同步更新上述标识与 [版本记录](CHANGELOG.md)，重新生成对应版本的分享包：
+
+- 修复问题或补充说明：增加修订号，例如 `v1.1.1`。
+- 增加兼容功能：增加次版本号，例如 `v1.2`。
+- 引入不兼容变更：增加主版本号，例如 `v2.0`，并在版本记录中说明迁移方法。
 
 ## 安装与使用
 
@@ -33,6 +45,8 @@ git clone https://github.com/RegalZzz/revit-ai-test-automation.git
 revit-ai-test-automation/
 ├── SKILL.md             AI 执行指引
 ├── README.md            安装与使用
+├── VERSION              当前包版本
+├── CHANGELOG.md         版本更新记录
 ├── agents/              Skill 展示与调用元数据
 ├── scripts/             PowerShell 启动、诊断与结果读取工具
 ├── assets/harness/      Revit 测试插件的 C# 项目模板

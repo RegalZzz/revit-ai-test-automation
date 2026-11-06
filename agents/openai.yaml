@@ -1,4 +1,4 @@
 interface:
-  display_name: "revit-ai-test-automation"
+  display_name: "revit-ai-test-automation v1.1"
   short_description: "指导 AI 设计 Revit 测试、生成场景、自动执行并诊断模型验证结果"
   default_prompt: "使用 $revit-ai-test-automation 为当前 Revit 插件设计并尽可能自动完成回归测试，在模型副本中执行、诊断失败并输出可核验的结果。"
